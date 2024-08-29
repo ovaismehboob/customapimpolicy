@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "82onVgWr2uoxCv+uYwsFIyqqQh5vBcLp3Zy5v0agqdw=",
+  "Source": "idpserviceapi",
+  "BasePath": "_content/idpserviceapi",
+  "Mode": "Default",
+  "ManifestType": "Publish",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

@@ -1,0 +1,94 @@
+<policies>
+    <inbound>
+        <base />
+        <!-- Validate the token -->
+        <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized" require-expiration-time="true" require-scheme="Bearer" require-signed-tokens="true">
+            <openid-config url="https://login.microsoftonline.com/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/.well-known/openid-configuration" />
+            <audiences>
+                <audience>https://XXX.XXX.net</audience>
+            </audiences>
+            <required-claims>
+                <claim name="appid" match="all">
+                    <value>XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX</value>
+                </claim>
+            </required-claims>
+        </validate-jwt>
+        <!-- Extract UPN claim from token -->
+        <set-variable name="upn" value="@{
+            string upn = "";
+            string authHeader = context.Request.Headers.GetValueOrDefault("Authorization", ""); 
+
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                string[] authHeaderParts = authHeader.Split(' ');
+
+                if (authHeaderParts.Length == 2 && authHeaderParts[0].Equals("Bearer", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Jwt jwt;
+                    if (authHeaderParts[1].TryParseJwt(out jwt))
+                    {
+                        upn = jwt.Claims.GetValueOrDefault("appid", "");
+                    }
+                }
+            }
+
+            return upn;
+        }" />
+        <!-- Printing the UPN for Trace -->
+        <trace source="policy">
+            <message>@("UPN is: " + context.Variables["upn"])</message>
+        </trace>
+        <!-- Look for token in the cache -->
+        <cache-lookup-value key="@("token-" + context.Variables["upn"])" variable-name="token" />
+        <choose>
+            <when condition="@(!context.Variables.ContainsKey("token-" + context.Variables["upn"]))">
+                <!-- Token not found in cache, call IDP service to validate token -->
+                <send-request mode="new" response-variable-name="tokenResponse" timeout="20" ignore-error="false">
+                    <set-url>@("https://XXXXXXXXXXXX.azurewebsites.net/ValidateToken?token=" + context.Request.Headers.GetValueOrDefault("Authorization").Split(new char[] { ' ' })[1])</set-url>
+                    <set-method>GET</set-method>
+                </send-request>
+                <choose>
+                    <when condition="@(((IResponse)context.Variables["tokenResponse"]).Body.As<string>() == "success")">
+                        <!-- Store token in cache with UPN as part of the key -->
+                        <cache-store-value key="@("token-" + context.Variables["upn"])" value="@(context.Request.Headers.GetValueOrDefault("Authorization", "").Split(new char[] { ' ' })[1])" duration="60" />
+                    </when>
+                    <otherwise>
+                        <return-response>
+                            <set-status code="401" reason="Unauthorized" />
+                            <set-body>Token validation failed from an IDP Service</set-body>
+                        </return-response>
+                    </otherwise>
+                </choose>
+            </when>
+        </choose>
+        <!-- Check roles and permissions in cache -->
+        <cache-lookup-value key="@("roles-" + context.Variables["upn"])" variable-name="roles" />
+        <choose>
+            <when condition="@(!context.Variables.ContainsKey("roles-" + context.Variables["upn"]))">
+                <!-- Roles and permissions not found in cache, call IDP service to get roles -->
+                <send-request mode="new" response-variable-name="rolesResponse" timeout="20" ignore-error="false">
+                    <set-url>https://XXXXXXXXXXXX.azurewebsites.net/ReturnRoles?upn=@(context.Variables["upn"])</set-url>
+                    <set-method>GET</set-method>
+                </send-request>
+                <set-variable name="roles" value="@{
+                    var rolesArray = JArray.Parse(((IResponse)context.Variables["rolesResponse"]).Body.As<string>());
+                    return string.Join(",", rolesArray.Select(r => (string)r["RoleName"]));
+                }" />
+                <cache-store-value key="@("roles-" + context.Variables["upn"])" value="@((string)context.Variables["roles"])" duration="300" />
+            </when>
+        </choose>
+        <!-- Add roles and permissions to request header -->
+        <set-header name="X-Roles" exists-action="override">
+            <value>@((string)context.Variables["roles"])</value>
+        </set-header>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

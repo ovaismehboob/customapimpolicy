@@ -1,0 +1,11 @@
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\idpserviceapi.exe
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\appsettings.Development.json
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\appsettings.json
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\idpserviceapi.dll
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\idpserviceapi.deps.json
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\idpserviceapi.runtimeconfig.json
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\idpserviceapi.pdb
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\Microsoft.OpenApi.dll
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.Swagger.dll
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Engagements\DPWorld\apim_policy\mockapi\mockapi\idpserviceapi\bin\Release\net8.0\publish\Swashbuckle.AspNetCore.SwaggerUI.dll
